@@ -1,0 +1,6 @@
+# Customize without coupling projects
+Edit `plugins/team-code/rules/user-custom.mdc` for personal or team conventions. Add portable rules to `rules/` with documented frontmatter, skills under `skills/<name>/SKILL.md`, agents under `agents/`, commands under `commands/`. The minimal manifest relies on official folder discovery. Explicit paths would replace discovery for that component; keep them relative and contained. The provided validator intentionally checks this package's narrower supported layout and will need a reviewed update when you change the layout.
+
+Keep model `inherit` and omit provider-specific model IDs. Keep project paths, command approvals, architecture facts and fixtures in the project's AGENTS.md. Templates are examples requiring adaptation. Maintain feature maps for changed behavior and ADRs for durable decisions.
+
+Adjust retry limits only deliberately and consistently in the main command and workflow skill; lower limits are often enough. Keep one writer per file and distinct reviewers. Avoid creating tests or documentation for trivial edits without benefit. Never relax local-code boundaries through customization. Optional hooks are in examples; enabling them requires separate deliberate configuration and local testing.

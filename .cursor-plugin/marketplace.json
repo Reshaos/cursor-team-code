@@ -1,0 +1,17 @@
+{
+  "name": "private-team-code",
+  "owner": {
+    "name": "Your Team"
+  },
+  "metadata": {
+    "description": "Portable local code workflow",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "team-code",
+      "source": "plugins/team-code",
+      "description": "Plan, implement, review and verify local code changes"
+    }
+  ]
+}

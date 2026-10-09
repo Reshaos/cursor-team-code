@@ -1,0 +1,7 @@
+---
+description: C sharp dotnet Azure client code and SQL source guidance
+globs: "**/*.cs,**/*.csproj,**/*.sln,**/*.slnx,**/*.sql,**/*.bicep,**/*.json"
+alwaysApply: false
+---
+Discover the project SDK, build, formatting and test conventions from AGENTS.md, README, global.json, solution/project files and existing local automation. Use its commands rather than guessing a project path. On Windows prefer PowerShell-safe quoting and explicit working directories; avoid Bash-only syntax.
+For C# preserve nullability, async/cancellation behavior, disposal and established DI conventions. For Azure SDK code use existing mocked adapters or approved local fixtures; never invoke live SDK operations or start services. For SQL inspect source only, preserve parameterization and transaction semantics; do not open a database connection or run a migration. Do not alter authentication, secrets, access policy or security settings. Infrastructure source may be reviewed but deployment/apply is forbidden. Do not upgrade SDKs or dependencies to solve unrelated issues.

@@ -1,0 +1,7 @@
+---
+description: Team-owned additive conventions; edit this file for your own portable rules
+alwaysApply: true
+---
+Add your team's coding and naming conventions below. Keep project paths, commands and architecture facts in that project's AGENTS.md. Do not add credentials or instructions that relax code-only boundaries.
+
+<!-- Your portable rules here. -->
