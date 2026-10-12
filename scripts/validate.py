@@ -3,7 +3,7 @@
 import json
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -40,17 +40,17 @@ def validate(root=ROOT):
                     require("\x00" not in text, f"NUL byte: {path}")
                     if path.suffix == ".json":
                         json.loads(text)
-        marketplace = json.loads((root / ".cursor-plugin/marketplace.json").read_text())
+        marketplace = json.loads((root / ".cursor-plugin/marketplace.json").read_text(encoding="utf-8"))
         require(set(marketplace) == {"name", "owner", "metadata", "plugins"}, "unexpected marketplace fields")
         require(bool(NAME.fullmatch(marketplace["name"])), "invalid marketplace name")
         require(bool(marketplace["owner"]["name"].strip()), "missing owner")
         require(len(marketplace["plugins"]) == 1, "expected one plugin")
         entry = marketplace["plugins"][0]
-        source = Path(entry["source"])
-        require(not source.is_absolute() and ".." not in source.parts and ":" not in str(source) and "\\" not in str(source), "unsafe marketplace source")
+        source = PurePosixPath(entry["source"])
+        require(not source.is_absolute() and ".." not in source.parts and ":" not in entry["source"] and "\\" not in entry["source"], "unsafe marketplace source")
         require(entry["source"] == "plugins/team-code", "unexpected source layout")
         plugin = root / "plugins/team-code"
-        manifest = json.loads((plugin / ".cursor-plugin/plugin.json").read_text())
+        manifest = json.loads((plugin / ".cursor-plugin/plugin.json").read_text(encoding="utf-8"))
         require(set(manifest) == {"name", "version", "description"}, "manifest must stay minimal; no MCP, variables or hooks")
         require(manifest["name"] == entry["name"] == "team-code", "plugin name mismatch")
         require(bool(re.fullmatch(r"\d+\.\d+\.\d+", manifest["version"])), "invalid version")
@@ -59,7 +59,7 @@ def validate(root=ROOT):
         require(not (plugin / "hooks").exists(), "hooks must remain disabled outside plugin")
         expected = {
             "rules": {"code-only.mdc", "dotnet-sql.mdc", "user-custom.mdc"},
-            "commands": {x + ".md" for x in ["team", "plan", "review", "check", "docs"]},
+            "commands": {x + ".md" for x in ["team", "team-plan", "team-build", "plan", "review", "check", "docs"]},
             "agents": {x + ".md" for x in ["team-planner", "team-implementer", "team-code-reviewer", "team-test-reviewer", "team-test-verifier"]},
             "skills": {"team-workflow", "finalchecks", "relevant-docs", "local-test-design"},
         }
@@ -80,20 +80,43 @@ def validate(root=ROOT):
                     require(fields.get("model") == "inherit", f"model must inherit: {path}")
                     expected_readonly = "true" if name in {"team-planner.md", "team-code-reviewer.md", "team-test-reviewer.md"} else "false"
                     require(fields.get("readonly") == expected_readonly, f"readonly mismatch: {path}")
-        command = (plugin / "commands/team.md").read_text().split("\n---\n", 1)[1]
-        skill = (plugin / "skills/team-workflow/SKILL.md").read_text().split("\n---\n", 1)[1]
-        require(command == skill, "main command and workflow skill drift")
+        skill = (plugin / "skills/team-workflow/SKILL.md").read_text(encoding="utf-8").split("\n---\n", 1)[1]
+        # Thin entry points cannot grow their own competing workflow/budgets.
+        for name in ("team", "team-plan", "team-build"):
+            command = (plugin / f"commands/{name}.md").read_text(encoding="utf-8").split("\n---\n", 1)[1]
+            expected_body = (
+                "\nApply the [team-workflow skill](../skills/team-workflow/SKILL.md), "
+                f"entry point `{name}`, to the request following this command. "
+                "Read the canonical workflow before proceeding; apply the code-only rule.\n"
+            )
+            require(command == expected_body, f"canonical entry-point drift: {name}")
+        # Static contract tripwires, not proof that Cursor follows the prompt.
+        for marker in (
+            "## Entry points and mode boundary", "## Planning route",
+            "## Execution admission and portable boundaries", "## Execution procedure",
+            "never override the mode's read-only boundary",
+            "Never silently select the latest arbitrary plan",
+            "native ask questions tool when available", "actual native editable plan and native TODOs",
+            "Label assignments as proposed, not actual spawned tasks",
+            "copy and specialize the entire execution procedure below",
+            "Stop after producing the plan for user review",
+            "read the exact approved plan and perform its revalidation TODO before any edits",
+            "three independent implementation scopes; one replan; two fix cycles; two attempts per failing check",
+            "fresh team-code-reviewer and a distinct fresh team-test-reviewer",
+            "no application APIs", "network restores",
+        ):
+            require(marker in skill, f"missing canonical workflow contract: {marker}")
         for name in ["AGENTS.md", "FEATURE-MAP.md", "ADR.md"]:
             require((root / "templates" / name).is_file(), f"missing template {name}")
         require(not (plugin / "AGENTS.md").exists(), "project AGENTS must not be installed globally")
-        hook = json.loads((root / "examples/optional-hooks/hooks.example.json").read_text())
+        hook = json.loads((root / "examples/optional-hooks/hooks.example.json").read_text(encoding="utf-8"))
         require(hook.get("version") == 1 and set(hook["hooks"]) == {"preToolUse"}, "invalid example hook events")
         require(hook["hooks"]["preToolUse"][0].get("failClosed") is True, "example must fail closed")
         # Check source Markdown links only; web links and placeholders require human review.
         for path in root.rglob("*.md"):
             if any(x in {".git", "dist", "__pycache__"} for x in path.relative_to(root).parts):
                 continue
-            for target in re.findall(r"\[[^\]]+\]\(([^)]+)\)", path.read_text()):
+            for target in re.findall(r"\[[^\]]+\]\(([^)]+)\)", path.read_text(encoding="utf-8")):
                 if target.startswith(("https://", "http://", "#", "<")):
                     continue
                 require((path.parent / target.split("#", 1)[0]).exists(), f"broken link {target} in {path}")

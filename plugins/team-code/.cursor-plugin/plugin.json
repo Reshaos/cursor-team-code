@@ -1,5 +1,5 @@
 {
   "name": "team-code",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Bounded local code workflow with planning, implementation, separate reviews, final checks and relevant docs"
 }

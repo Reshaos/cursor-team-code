@@ -9,11 +9,13 @@ A portable Cursor team plugin source repository for local code work. Extract int
 
 Example: `/team Fix the total calculation when a line has zero quantity. Add a focused regression test using the existing local fixtures.`
 
+For a plan you can review first, select native Cursor Plan mode and invoke `/team-plan` with your request. It prepares a native editable plan/TODOs containing concrete custom-agent tasks and execution instructions, then stops. After review, native Build follows those instructions; `/team-build` is an explicit fallback for an identified, approved plan. Commands do not switch modes or guarantee UI behavior. See the [Plan/Build smoke test](docs/VALIDATION.md).
+
 The main command plans proportionately, gives independent workers disjoint file scopes, obtains separate code and test reviews, fixes within a bounded budget, performs final checks and updates relevant documentation. Tiny changes use one short path. Agents inherit the parent model. This is guidance, not a sandbox or a guarantee that review occurred.
 
 ## Contents
 - `.cursor-plugin/marketplace.json`: private marketplace with one plugin.
-- `plugins/team-code/`: supported plugin manifest, 3 rules, 5 commands, 4 skills, 5 custom agents.
+- `plugins/team-code/`: supported plugin manifest, 3 rules, 7 commands, 4 skills, 5 custom agents.
 - `templates/`: project AGENTS.md, feature map and ADR templates. These are not globally installed instructions.
 - `examples/optional-hooks/`: opt-in deterministic example, deliberately outside automatic hook discovery.
 - `scripts/`: dependency-free validation, tests and reproducible packaging.
@@ -31,4 +33,4 @@ python3 scripts/test_package.py
 python3 scripts/package.py
 ```
 
-The last command validates first and produces `dist/cursor-team-code-1.0.0.zip` plus SHA256. The archive contains this repository's source, without Git history. [Validation limits](docs/VALIDATION.md) distinguish static checks from an actual Cursor loading test. No third-party code is bundled. See [PROVENANCE.md](PROVENANCE.md) for authorship and licensing status; decide an explicit license before granting downstream reuse rights.
+The last command validates first and produces `dist/cursor-team-code-1.1.0.zip` plus SHA256. The archive contains this repository's source, without Git history. [Validation limits](docs/VALIDATION.md) distinguish static checks from an actual Cursor loading test. No third-party code is bundled. See [PROVENANCE.md](PROVENANCE.md) for authorship and licensing status; decide an explicit license before granting downstream reuse rights.

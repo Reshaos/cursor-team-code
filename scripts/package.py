@@ -12,7 +12,7 @@ def package(root=ROOT, output=None):
     if failures:
         raise ValueError("; ".join(failures))
     import json
-    version = json.loads((root / "plugins/team-code/.cursor-plugin/plugin.json").read_text())["version"]
+    version = json.loads((root / "plugins/team-code/.cursor-plugin/plugin.json").read_text(encoding="utf-8"))["version"]
     output = Path(output) if output else root / "dist" / f"cursor-team-code-{version}.zip"
     output.parent.mkdir(parents=True, exist_ok=True)
     excluded = {".git", "dist", "__pycache__", ".work"}
